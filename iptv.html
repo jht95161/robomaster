@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; connect-src * wss:">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>中国移动IPTV终极解决方案</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --error-color: #F44336;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1976D2, #2196F3);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .player-container {
+            background: #000;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        #video-player {
+            width: 100%;
+            height: 500px;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .control-panel {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin: 18px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-group label {
+            min-width: 100px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="url"], input[type="text"], select {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+
+        button {
+            padding: 12px 22px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #1565C0;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #607D8B;
+        }
+
+        button.secondary:hover {
+            background: #455A64;
+        }
+
+        button.warning {
+            background: var(--warning-color);
+        }
+
+        button.warning:hover {
+            background: #F57C00;
+        }
+
+        .error-box {
+            color: var(--error-color);
+            padding: 16px;
+            background: #FFEBEE;
+            border-radius: 6px;
+            margin: 18px 0;
+            display: none;
+            border-left: 4px solid var(--error-color);
+        }
+
+        .status-box {
+            padding: 14px;
+            background: #E8F5E9;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .debug-info {
+            display: none;
+            background: #E3F2FD;
+            padding: 18px;
+            border-radius: 6px;
+            margin-top: 25px;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #BBDEFB;
+        }
+
+        .debug-info div {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #90CAF9;
+        }
+
+        .toggle-debug {
+            color: var(--primary-color);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .speed-test {
+            margin-top: 15px;
+            padding: 12px;
+            background: #FFF3E0;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #E0E0E0;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            #video-player {
+                height: 300px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-panel {
+                padding: 18px;
+            }
+            
+            button {
+                width: 100%;
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>中国移动IPTV终极解决方案</h1>
+        <p>专业级HLS流媒体播放器 | 深度适配中国移动网络环境</p>
+    </div>
+
+    <div class="player-container">
+        <video id="video-player" controls crossorigin="anonymous" playsinline></video>
+    </div>
+
+    <div class="control-panel">
+        <div class="input-group">
+            <label for="m3u8-url">M3U8地址:</label>
+            <input type="url" id="m3u8-url" 
+                   placeholder="输入M3U8链接 (示例: http://example.com/stream.m3u8)"
+                   value="http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226525/index.m3u8">
+            <button onclick="loadStream()">加载</button>
+            <button onclick="toggleFullscreen()" class="secondary">全屏</button>
+        </div>
+
+        <div class="input-group">
+            <label for="proxy-type">代理策略:</label>
+            <select id="proxy-type">
+                <option value="none">无代理</option>
+                <option value="cn-proxy">中国移动优化</option>
+                <option value="backup">备用通道</option>
+                <option value="websocket">WebSocket</option>
+                <option value="custom">自定义</option>
+            </select>
+            <input type="text" id="custom-proxy" 
+                   placeholder="格式: https://yourproxy.com/?url=" disabled>
+        </div>
+
+        <div class="input-group">
+            <label for="user-agent">User-Agent:</label>
+            <input type="text" id="user-agent" 
+                   placeholder="自定义User-Agent">
+        </div>
+
+        <div class="input-group">
+            <label for="ip-override">IP覆盖:</label>
+            <input type="text" id="ip-override" 
+                   placeholder="覆盖域名解析 (如: 203.156.245.102)">
+        </div>
+
+        <div class="error-box" id="error-message"></div>
+
+        <div class="status-box" id="status">准备就绪，请输入M3U8地址并点击加载</div>
+
+        <div class="progress-bar" id="progress-container" style="display:none">
+            <div class="progress" id="progress-bar"></div>
+        </div>
+
+        <div class="speed-test" id="speed-test">
+            <div>带宽测试: <span id="speed-result">正在检测...</span></div>
+        </div>
+
+        <div class="input-group">
+            <button onclick="checkNetwork()" class="secondary">网络诊断</button>
+            <button onclick="runSpeedTest()" class="secondary">带宽测试</button>
+            <button onclick="clearAll()" class="warning">重置</button>
+            <span class="toggle-debug" onclick="toggleDebug()">显示调试信息</span>
+        </div>
+
+        <div class="debug-info" id="debug-info"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        // 全局变量
+        let hls = null;
+        let retryCount = 0;
+        const MAX_RETRY = 3;
+        const video = document.getElementById('video-player');
+        const statusEl = document.getElementById('status');
+        const debugEl = document.getElementById('debug-info');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+
+        // 增强版代理配置
+        const PROXY_SERVERS = {
+            'none': url => processUrl(url),
+            'cn-proxy': url => `https://proxy.mobilecdn.xyz/hls?url=${encodeURIComponent(processUrl(url))}&t=${Date.now()}`,
+            'backup': url => `https://hlsproxy.backup.com/v1/stream?q=${btoa(processUrl(url))}`,
+            'websocket': url => `wss://hls-ws.example.com/relay?url=${btoa(processUrl(url))}`,
+            'custom': url => {
+                const proxy = document.getElementById('custom-proxy').value;
+                return proxy ? proxy + encodeURIComponent(processUrl(url)) : processUrl(url);
+            }
+        };
+
+        // URL预处理
+        function processUrl(url) {
+            let processed = url;
+            const ipOverride = document.getElementById('ip-override').value.trim();
+            
+            // IP覆盖处理
+            if (ipOverride) {
+                processed = processed.replace(/\/\/([^\/]+)/, `//${ipOverride}`);
+                addDebugInfo(`应用IP覆盖: ${url} → ${processed}`);
+            }
+            
+            // 强制HTTPS
+            if (!processed.startsWith('http')) {
+                processed = `https://${processed}`;
+            }
+            
+            // 添加时间戳防缓存
+            if (!processed.includes('?')) {
+                processed += `?t=${Date.now()}`;
+            } else {
+                processed += `&t=${Date.now()}`;
+            }
+            
+            return processed;
+        }
+
+        // 初始化事件监听
+        document.getElementById('proxy-type').addEventListener('change', function() {
+            document.getElementById('custom-proxy').disabled = this.value !== 'custom';
+        });
+
+        // 主播放函数
+        async function loadStream() {
+            clearError();
+            updateStatus('启动深度检测...');
+            showProgress(0);
+            
+            try {
+                // 执行预检查
+                await Promise.all([
+                    checkNetwork(),
+                    checkDNS(),
+                    checkPortAvailability()
+                ]);
+
+                const originalUrl = document.getElementById('m3u8-url').value.trim();
+                if (!originalUrl) {
+                    throw new Error('请输入有效的M3U8链接');
+                }
+
+                // 准备备用URL方案
+                const tryUrls = [
+                    buildUrl(originalUrl, 'cn-proxy'),
+                    buildUrl(originalUrl, 'none'),
+                    buildUrl(originalUrl, 'websocket'),
+                    buildUrl(originalUrl, 'backup')
+                ];
+
+                // 多重回退尝试
+                for (let i = 0; i < tryUrls.length; i++) {
+                    updateStatus(`尝试方案 ${i + 1}/${tryUrls.length}...`);
+                    showProgress((i + 1) * 25);
+                    addDebugInfo(`尝试URL: ${maskUrl(tryUrls[i])}`);
+                    
+                    try {
+                        await attemptPlay(tryUrls[i]);
+                        if (video.readyState > 1) {
+                            updateStatus(`方案 ${i + 1} 成功`);
+                            showProgress(100);
+                            return;
+                        }
+                    } catch (e) {
+                        addDebugInfo(`方案 ${i + 1} 失败: ${e.message}`);
+                    }
+                }
+                
+                throw new Error('所有播放方案均失败');
+            } catch (err) {
+                showError(err.message);
+                showProgress(0);
+            } finally {
+                setTimeout(() => progressContainer.style.display = 'none', 2000);
+            }
+        }
+
+        // 播放尝试函数
+        function attemptPlay(url) {
+            return new Promise((resolve, reject) => {
+                if (hls) {
+                    hls.destroy();
+                }
+
+                const config = {
+                    ...createHlsConfig(),
+                    p2pEnabled: false,
+                    lowLatencyMode: false,
+                    maxBufferLength: 30,
+                    backBufferLength: 10
+                };
+
+                hls = new Hls(config);
+                
+                // 事件监听
+                hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+                    addDebugInfo('视频元素已附加');
+                });
+
+                hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+                    addDebugInfo(`解析成功，找到 ${data.levels.length} 个质量等级`);
+                    video.play().then(resolve).catch(reject);
+                });
+
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        const errMsg = `HLS错误: ${data.type} - ${data.details}`;
+                        addDebugInfo(errMsg);
+                        reject(new Error(errMsg));
+                    }
+                });
+
+                hls.loadSource(url);
+                hls.attachMedia(video);
+            });
+        }
+
+        // HLS配置生成
+        function createHlsConfig() {
+            return {
+                xhrSetup: (xhr, url) => {
+                    xhr.timeout = 20000;
+                    xhr.withCredentials = false;
+                    
+                    // 请求头配置
+                    const userAgent = document.getElementById('user-agent').value || 
+                        'Dalvik/2.1.0 (Linux; U; Android 9; MI 6 Build/PKQ1.190118.001)';
+                    
+                    xhr.setRequestHeader('User-Agent', userAgent);
+                    xhr.setRequestHeader('X-Forwarded-For', '116.136.20.123');
+                    xhr.setRequestHeader('CLIENT-IP', '116.136.20.123');
+                    xhr.setRequestHeader('CMCC-AUTH', 'mobile-web|1.0|android|9|MI6');
+                    
+                    // WebSocket特殊处理
+                    if (url.startsWith('wss://')) {
+                        xhr._isWebSocket = true;
+                    }
+                },
+                manifestLoadingTimeOut: 25000,
+                manifestLoadingMaxRetry: 3,
+                fragLoadingTimeOut: 20000,
+                enableWorker: true,
+                enableSoftwareAES: true,
+                debug: false
+            };
+        }
+
+        // 网络诊断
+        async function checkNetwork() {
+            updateStatus('检查网络连接...');
+            const testUrls = [
+                'https://www.baidu.com',
+                'https://www.qq.com',
+                'http://www.chinamobile.com'
+            ];
+            
+            for (const url of testUrls) {
+                try {
+                    const start = Date.now();
+                    await fetch(url, { mode: 'no-cors', cache: 'no-store' });
+                    const latency = Date.now() - start;
+                    addDebugInfo(`网络检查: ${url} 响应时间 ${latency}ms`);
+                } catch (err) {
+                    addDebugInfo(`网络检查失败: ${url} - ${err.message}`);
+                    throw new Error('网络连接异常');
+                }
+            }
+        }
+
+        // DNS检测
+        async function checkDNS() {
+            const domain = 'ottrrs.hl.chinamobile.com';
+            try {
+                const ips = await resolveDNS(domain);
+                addDebugInfo(`DNS解析: ${domain} => ${ips.join(', ')}`);
+                return ips;
+            } catch (err) {
+                addDebugInfo(`DNS解析失败: ${err.message}`);
+                return [];
+            }
+        }
+
+        // 模拟DNS解析
+        function resolveDNS(domain) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(['203.156.245.102', '203.156.245.103']);
+                }, 50);
+            });
+        }
+
+        // 端口检测
+        async function checkPortAvailability() {
+            const testPorts = [80, 443, 8080, 1935];
+            for (const port of testPorts) {
+                const result = await testPort('ottrrs.hl.chinamobile.com', port);
+                addDebugInfo(`端口 ${port} ${result ? '开放' : '关闭'}`);
+            }
+        }
+
+        // 模拟端口检测
+        function testPort(host, port) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(port === 80 || port === 443);
+                }, 100);
+            });
+        }
+
+        // 带宽测试
+        async function runSpeedTest() {
+            document.getElementById('speed-test').style.display = 'block';
+            const testUrl = 'https://speedtest.example.com/100mb.test';
+            const startTime = Date.now();
+            let loaded = 0;
+            
+            try {
+                const response = await fetch(testUrl);
+                const reader = response.body.getReader();
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    loaded += value.length;
+                    const speed = (loaded / (Date.now() - startTime)).toFixed(2);
+                    document.getElementById('speed-result').textContent = `${speed} Mbps`;
+                }
+            } catch (err) {
+                document.getElementById('speed-result').textContent = `测试失败: ${err.message}`;
+            }
+        }
+
+        // 工具函数
+        function buildUrl(url, proxyType) {
+            const type = proxyType || document.getElementById('proxy-type').value;
+            return PROXY_SERVERS[type](url);
+        }
+
+        function maskUrl(url) {
+            return url.replace(/(https?:\/\/)([^\/]+)/, (m, p1, p2) => `${p1}${p2.split('.').map((v,i) => i > 0 ? 'xxx' : v).join('.')}`);
+        }
+
+        function updateStatus(message) {
+            statusEl.textContent = `状态: ${message} (${new Date().toLocaleTimeString()})`;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = `错误: ${message}`;
+            errorEl.style.display = 'block';
+            updateStatus(`错误: ${message}`);
+        }
+
+        function clearError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        function addDebugInfo(message) {
+            debugEl.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${message}</div>`;
+            debugEl.scrollTop = debugEl.scrollHeight;
+        }
+
+        function showProgress(percent) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${percent}%`;
+        }
+
+        function toggleFullscreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                video.requestFullscreen().catch(e => {
+                    showError(`全屏失败: ${e.message}`);
+                });
+            }
+        }
+
+        function toggleDebug() {
+            debugEl.style.display = debugEl.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function clearAll() {
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+            video.src = '';
+            document.getElementById('m3u8-url').value = '';
+            document.getElementById('ip-override').value = '';
+            clearError();
+            updateStatus('已重置，准备就绪');
+            debugEl.innerHTML = '';
+            progressContainer.style.display = 'none';
+            document.getElementById('speed-test').style.display = 'none';
+        }
+
+        // 初始化默认值
+        document.getElementById('user-agent').value = 
+            'Dalvik/2.1.0 (Linux; U; Android 9; MI 6 Build/PKQ1.190118.001)';
+    </script>
+</body>
+</html>

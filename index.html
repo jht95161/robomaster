@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CameraMaster监控室大爷</title>
+    <link rel="stylesheet" href="style.css"></link>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>CameraMaster监控室大爷</h1>
+            <div class="controls">
+                <label for="stream-count">视频流数量 (1-9):</label>
+                <input type="number" id="stream-count" min="1" max="9" value="1">
+                <button id="apply-stream-count">应用</button>
+                <button id="mute-all">一键静音/取消静音</button>
+                <button id="toggle-view">切换主副视图</button>
+                <button id="screenshot-btn">截图</button>
+            </div>
+            <ul id="history-list"></ul>
+        </header>
+
+        <!-- Main/Sub View Area -->
+        <div id="main-sub-view-area" class="view-area hidden">
+            <div id="main-video-player-container">
+                <!-- Main video player will be appended here -->
+            </div>
+            <div id="sub-video-players-container">
+                <!-- Sub video players (thumbnails) will be appended here -->
+            </div>
+        </div>
+
+        <!-- Grid View Area -->
+        <main id="video-grid" class="grid-1 view-area">
+            <!-- Video players will be dynamically added here for grid view -->
+        </main>
+
+        <!-- <footer>
+            <p>历史记录将显示在此处 (如果浏览器支持 LocalStorage)</p>
+            <ul id="history-list"></ul>
+        </footer> -->
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
